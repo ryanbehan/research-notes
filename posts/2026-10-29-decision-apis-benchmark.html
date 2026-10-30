@@ -16,9 +16,22 @@
   document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector("nav.top .inner");
     if (!nav) return;
+    const inPosts = location.pathname.includes("/posts/");
+    const LOGO = `<svg width="18" height="18" viewBox="0 0 32 32" style="display:block" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="6" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="7" y="22.5" font-family="ui-monospace,Menlo,monospace" font-size="14" font-weight="700" fill="var(--accent)">rb</text></svg>`;
+    const brand = document.createElement("span");
+    brand.className = "rb-brand";
+    brand.innerHTML = inPosts
+      ? `<a class="rb-home" href="../" title="back to all posts">${LOGO}<span>rb://notes</span></a>`
+      : `<span class="rb-home">${LOGO}</span>`;
+    nav.insertBefore(brand, nav.firstChild);
+    // cross-links between reports use source filenames; map them to post slugs on the blog
+    if (inPosts) {
+      const SLUGS = { "report.html": "2026-10-29-decision-apis-benchmark.html", "qa-report.html": "2026-10-30-decision-models-playwright.html" };
+      document.querySelectorAll('a[href]').forEach(a => { const s = SLUGS[a.getAttribute("href")]; if (s) a.href = s; });
+    }
     const box = document.createElement("span");
     box.className = "rb-themes";
-    const blog = location.pathname.includes("/posts/") ? `<a href="../">← all posts</a>` : "";
+    const blog = inPosts ? `<a href="../">← all posts</a>` : "";
     box.innerHTML = `${blog}<span class="sw" role="group" aria-label="Color theme">${THEMES.map(x =>
       `<button data-t="${x}" aria-pressed="${x === t}">${x}</button>`).join("")}</span>`;
     nav.appendChild(box);
@@ -61,6 +74,8 @@ html{background:var(--bg);color-scheme:light}
 [data-theme="neon"],[data-theme="term"]{color-scheme:dark}
 body{transition:background .3s,color .3s}
 h1{text-shadow:0 0 28px var(--glow)}
+.rb-brand{display:inline-flex;align-items:center;margin-right:10px}
+.rb-home{display:inline-flex;align-items:center;gap:7px;font-weight:700}
 .rb-themes{margin-left:auto;display:flex;align-items:center;gap:14px}
 .rb-themes .sw{display:flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
 .rb-themes button{all:unset;cursor:pointer;padding:3px 9px;font:10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
