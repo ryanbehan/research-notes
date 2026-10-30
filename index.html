@@ -1,83 +1,316 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="neon">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ryan Behan — research notes</title>
-<meta name="description" content="Experiments, benchmarks, and notes on AI infrastructure — with real data." />
-<link rel="icon" href="data:," />
+<title>Ryan Behan · research notes</title>
+<meta name="description" content="Ryan Behan: platform engineer writing field notes on putting AI models to work in real infrastructure." />
+<meta property="og:title" content="Ryan Behan · research notes" />
+<meta property="og:description" content="Field notes on AI in the platform stack: benchmarks, demos, and real run data." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%2307060d'/><text x='5' y='23' font-family='monospace' font-size='18' fill='%2300f0ff'>rb</text></svg>" />
+<script>
+  try { const t = localStorage.getItem("rb-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
 <style>
 :root{
-  --bg:#fafaf8; --ink:#16161a; --muted:#6b6f7a; --rule:#e3e2dd;
-  --accent:#4f46e5; --accent-soft:#c7c5f4; --green:#16a34a;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --bar:60px;
+}
+[data-theme="neon"]{
+  --bg:#07060d; --bg2:#0d0b18; --ink:#ece9ff; --muted:#8c88aa; --rule:rgba(140,136,170,.18);
+  --accent:#00f0ff; --accent2:#ff2bd6; --grid:255,43,214; --glow:0,240,255;
+  --display:var(--mono); --scan:.06;
+}
+[data-theme="paper"]{
+  --bg:#f5f4ef; --bg2:#ecebe4; --ink:#15151a; --muted:#666974; --rule:rgba(21,21,26,.12);
+  --accent:#4338ca; --accent2:#4338ca; --grid:67,56,202; --glow:67,56,202;
+  --display:var(--sans); --scan:0;
+}
+[data-theme="term"]{
+  --bg:#020904; --bg2:#06120a; --ink:#c3ffd2; --muted:#5a9a6b; --rule:rgba(90,154,107,.2);
+  --accent:#39ff6a; --accent2:#39ff6a; --grid:57,255,106; --glow:57,255,106;
+  --display:var(--mono); --scan:.09;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
-a{color:var(--accent);text-decoration:none}
-.wrap{max-width:820px;margin:0 auto;padding:0 20px}
-header{padding:80px 0 30px;border-bottom:1px solid var(--rule)}
-.eyebrow{font:12px var(--mono);color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
-h1{font-size:34px;line-height:1.2;margin:10px 0 12px;letter-spacing:-.01em}
-.sub{color:var(--muted);max-width:58ch}
-.posts{padding:10px 0 40px}
-.post{display:block;color:var(--ink);border:1px solid var(--rule);border-radius:12px;
-  background:#fff;padding:20px 22px;margin:14px 0;transition:border-color .15s}
-.post:hover{border-color:var(--accent-soft);text-decoration:none}
-.post .date{font:12px var(--mono);color:var(--muted)}
-.post h2{font-size:19px;margin:4px 0 6px;letter-spacing:-.01em}
-.post p{margin:0;color:#3f4148;font-size:14.5px}
-.post .tags{margin-top:12px}
-.tag{display:inline-block;font:11px var(--mono);color:var(--accent);
-  background:#eef0ff;border:1px solid var(--accent-soft);border-radius:99px;padding:2px 9px;margin-right:6px}
-.post .go{font:12px var(--mono);color:var(--muted);margin-top:10px}
-.post:hover .go{color:var(--accent)}
-footer{border-top:1px solid var(--rule);padding:26px 0 60px;font:12px var(--mono);color:var(--muted)}
-@media(max-width:640px){header{padding:56px 0 24px}h1{font-size:27px}}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 var(--sans);-webkit-font-smoothing:antialiased;transition:background .4s,color .4s}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:var(--scan);
+  background:repeating-linear-gradient(0deg,#000 0 1px,transparent 1px 3px)}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--bg)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* top bar — overlays the hero */
+.bar{position:fixed;top:0;left:0;right:0;height:var(--bar);z-index:40;display:flex;align-items:center;gap:28px;
+  padding:0 clamp(18px,4vw,48px);font:13px var(--mono);letter-spacing:.04em;
+  background:linear-gradient(var(--bg),transparent);transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+.bar.solid{background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-color:var(--rule)}
+.logo{font-weight:700;color:var(--ink)}
+.logo b{color:var(--accent)}
+.bar nav{display:flex;gap:22px;margin-left:auto;color:var(--muted)}
+.bar nav a:hover{color:var(--accent)}
+.themes{display:flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.themes button{all:unset;cursor:pointer;padding:5px 10px;font:11px var(--mono);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.themes button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.themes button:not([aria-pressed="true"]):hover{color:var(--ink)}
+
+/* hero */
+.hero{position:relative;height:100svh;min-height:600px;overflow:hidden;display:flex;align-items:flex-end}
+#field{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 22% 55%,color-mix(in srgb,var(--bg) 82%,transparent),transparent 70%),
+             linear-gradient(transparent 70%,var(--bg))}
+.hero-inner{position:relative;z-index:2;width:100%;padding:0 clamp(18px,4vw,48px) clamp(64px,12vh,120px);max-width:980px}
+.eyebrow{font:12.5px var(--mono);color:var(--accent);letter-spacing:.16em;text-transform:uppercase}
+.eyebrow::before{content:"// ";color:var(--accent2)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(52px,10.5vw,144px);line-height:.9;letter-spacing:-.03em;
+  margin:18px 0 26px;text-transform:uppercase;position:relative;text-shadow:0 0 34px rgba(var(--glow),.35)}
+[data-theme="paper"] h1{text-transform:none;letter-spacing:-.045em;text-shadow:none}
+h1 .g{position:relative;display:inline-block}
+.lede{font-size:clamp(17px,1.6vw,20px);max-width:44ch;color:var(--ink);opacity:.86;margin:0 0 34px}
+.cta{display:flex;flex-wrap:wrap;gap:14px}
+.btn{font:13px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:13px 22px;border:1px solid var(--accent);
+  color:var(--accent);border-radius:3px;transition:background .2s,color .2s,box-shadow .2s}
+.btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 28px rgba(var(--glow),.45)}
+.btn.primary{background:var(--accent);color:var(--bg)}
+.btn.primary:hover{box-shadow:0 0 34px rgba(var(--glow),.6)}
+.cue{position:absolute;right:clamp(18px,4vw,48px);bottom:28px;z-index:2;font:11px var(--mono);color:var(--muted);
+  letter-spacing:.2em;writing-mode:vertical-rl}
+
+/* glitch — neon only, once on load and on hover */
+[data-theme="neon"] h1 .g::before,[data-theme="neon"] h1 .g::after{content:attr(data-text);position:absolute;inset:0;opacity:0}
+[data-theme="neon"] h1 .g::before{color:var(--accent2);transform:translate(-3px,0)}
+[data-theme="neon"] h1 .g::after{color:var(--accent);transform:translate(3px,0)}
+[data-theme="neon"] h1.glitch .g::before{animation:gl 700ms steps(2) 1}
+[data-theme="neon"] h1.glitch .g::after{animation:gl 700ms steps(2) 80ms 1 reverse}
+@keyframes gl{
+  0%{opacity:.9;clip-path:inset(10% 0 70% 0)}20%{clip-path:inset(60% 0 12% 0)}
+  40%{clip-path:inset(32% 0 44% 0)}60%{clip-path:inset(78% 0 4% 0)}80%{clip-path:inset(4% 0 82% 0)}100%{opacity:0}}
+
+/* entrance */
+.in{opacity:0;transform:translateY(18px);animation:up .8s cubic-bezier(.2,.7,.2,1) forwards}
+.d1{animation-delay:.15s}.d2{animation-delay:.3s}.d3{animation-delay:.45s}.d4{animation-delay:.6s}
+@keyframes up{to{opacity:1;transform:none}}
+
+/* sections */
+.sec{padding:clamp(80px,12vh,140px) clamp(18px,4vw,48px);max-width:1180px;margin:0 auto}
+.sechead{display:flex;align-items:baseline;gap:18px;border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:8px}
+.sechead h2{font:700 13px var(--mono);letter-spacing:.2em;text-transform:uppercase;margin:0;color:var(--accent)}
+.sechead span{font:12px var(--mono);color:var(--muted)}
+
+/* post list — rows, not cards */
+.post{display:grid;grid-template-columns:90px 1fr auto;gap:28px;align-items:start;padding:34px 0;border-bottom:1px solid var(--rule);
+  position:relative;transition:padding .3s}
+.post::before{content:"";position:absolute;left:0;top:-1px;height:1px;width:0;background:var(--accent);box-shadow:0 0 12px var(--accent);transition:width .45s cubic-bezier(.2,.7,.2,1)}
+.post:hover::before{width:100%}
+.post .idx{font:700 44px/1 var(--display);color:transparent;-webkit-text-stroke:1px var(--muted);transition:-webkit-text-stroke-color .3s,color .3s}
+.post:hover .idx{-webkit-text-stroke-color:var(--accent);color:rgba(var(--glow),.12)}
+.post .date{font:12px var(--mono);color:var(--muted);letter-spacing:.06em}
+.post h3{font-family:var(--display);font-size:clamp(22px,2.6vw,32px);line-height:1.15;margin:6px 0 10px;letter-spacing:-.015em;transition:color .25s}
+.post:hover h3{color:var(--accent)}
+.post p{margin:0;color:var(--muted);max-width:62ch}
+.post .tags{margin-top:14px;font:12px var(--mono);color:var(--accent2);display:flex;flex-wrap:wrap;gap:14px}
+.post .arr{font:22px var(--mono);color:var(--muted);transition:transform .3s,color .3s;padding-top:18px}
+.post:hover .arr{transform:translateX(6px);color:var(--accent)}
+
+/* about */
+.about{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:clamp(30px,6vw,90px);margin-top:40px}
+.about .big{font-family:var(--display);font-size:clamp(28px,3.4vw,44px);line-height:1.1;letter-spacing:-.02em;margin:0}
+.about .big em{font-style:normal;color:var(--accent)}
+.about p{margin:0 0 16px;color:var(--ink);opacity:.86;max-width:60ch}
+.status{font:12.5px var(--mono);color:var(--muted);margin:24px 0 28px;display:flex;align-items:center;gap:10px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 2.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+footer{border-top:1px solid var(--rule);padding:30px clamp(18px,4vw,48px) 50px;font:12px var(--mono);color:var(--muted);
+  display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;max-width:1180px;margin:0 auto}
+footer a:hover{color:var(--accent)}
+
+/* scroll reveal */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .8s,transform .8s cubic-bezier(.2,.7,.2,1)}
+.rv.on{opacity:1;transform:none}
+
+@media(max-width:760px){
+  .bar nav{display:none}.themes{margin-left:auto}
+  .post{grid-template-columns:1fr;gap:6px}.post .idx{font-size:30px}.post .arr{display:none}
+  .about{grid-template-columns:1fr}.cue{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .in,.rv{opacity:1;transform:none}html{scroll-behavior:auto}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="eyebrow">ryanbehan</div>
-    <h1>Research notes</h1>
-    <p class="sub">Experiments, benchmarks, and working demos on AI infrastructure and
-    agent tooling. Everything here is generated from real runs — costs, traces,
-    failures included.</p>
-  </header>
-  <main class="posts" id="posts"></main>
-  <footer>
-    <a href="https://github.com/ryanbehan/ryanbehan.github.io">source</a> ·
-    generated reports are standalone HTML — no trackers, no external assets
-  </footer>
-</div>
+<header class="bar" id="bar">
+  <a class="logo" href="#top">rb<b>://</b>notes</a>
+  <nav><a href="#posts">posts</a><a href="#about">about</a><a href="https://www.linkedin.com/in/ryanbehan" target="_blank" rel="noopener">linkedin ↗</a></nav>
+  <div class="themes" role="group" aria-label="Color theme">
+    <button data-t="neon">neon</button><button data-t="paper">paper</button><button data-t="term">term</button>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <div class="eyebrow in">research log · ai × platform engineering</div>
+    <h1 class="in d1" id="name"><span class="g" data-text="Ryan">Ryan</span><br><span class="g" data-text="Behan">Behan</span></h1>
+    <p class="lede in d2">Field notes from putting AI models to work in real infrastructure: what they get right, what they cost, and where a person stays in the loop.</p>
+    <div class="cta in d3">
+      <a class="btn primary" href="#posts">Read the latest →</a>
+      <a class="btn" href="https://www.linkedin.com/in/ryanbehan" target="_blank" rel="noopener">LinkedIn ↗</a>
+    </div>
+  </div>
+  <div class="cue in d4">scroll</div>
+</section>
+
+<main>
+  <section class="sec" id="posts">
+    <div class="sechead rv"><h2>Posts</h2><span id="count"></span></div>
+    <div id="list"></div>
+  </section>
+
+  <section class="sec" id="about">
+    <div class="sechead rv"><h2>About</h2><span>whoami</span></div>
+    <div class="about">
+      <p class="big rv">Platform engineer.<br>Testing where <em>AI</em> actually earns its place.</p>
+      <div class="rv">
+        <p>I'm Ryan Behan, a platform and DevOps engineer. My day-to-day is cloud infrastructure: AWS, Terraform, CI/CD, and the tooling that keeps delivery fast and safe.</p>
+        <p>This site is where I test AI against that work. I run real experiments, measure cost and accuracy, and write up what holds up, including the failures. Every post is generated from actual run data.</p>
+        <div class="status"><i></i>currently: testing decision models as QA and safety agents</div>
+        <div class="cta">
+          <a class="btn primary" href="https://www.linkedin.com/in/ryanbehan" target="_blank" rel="noopener">Connect on LinkedIn ↗</a>
+          <a class="btn" href="https://github.com/ryanbehan" target="_blank" rel="noopener">GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© <span id="yr"></span> Ryan Behan</span>
+  <span><a href="https://www.linkedin.com/in/ryanbehan" target="_blank" rel="noopener">linkedin</a> · <a href="https://github.com/ryanbehan/ryanbehan.github.io" target="_blank" rel="noopener">source</a> · no trackers, no external assets</span>
+</footer>
+
 <script>
-// new post = drop the html in posts/ and add an entry here
+// new post = drop the html in posts/ and add an entry here (newest first)
 const POSTS = [
   {
     file: "2026-10-30-decision-models-playwright.html",
     date: "2026-10-30",
     title: "Can a small AI model test a web app?",
     dek: "Seven inexpensive AI models, a fake support app, and four everyday tasks. What we expected, what each model did, and how this helps software testing.",
-    tags: ["decisions api", "playwright", "agents", "qa"],
+    tags: ["decisions-api", "playwright", "qa", "agents"],
   },
   {
     file: "2026-10-29-decision-apis-benchmark.html",
     date: "2026-10-29",
     title: "Decisions APIs: an evaluation report",
-    dek: "Six decision models compared on classification, a command-safety gate, cost, and latency — 6,890 live calls, ~$0.14 total. Plus what an AWS/Bedrock shop should consider.",
-    tags: ["decisions api", "benchmark", "agents", "aws"],
+    dek: "Six decision models compared on classification, a command-safety gate, cost, and latency: 6,890 live calls for about $0.14 total, plus what an AWS shop should consider.",
+    tags: ["decisions-api", "benchmark", "agents", "aws"],
   },
 ];
-document.getElementById("posts").innerHTML = POSTS.map(p => `
-  <a class="post" href="posts/${p.file}">
-    <div class="date">${p.date}</div>
-    <h2>${p.title}</h2>
-    <p>${p.dek}</p>
-    <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
-    <div class="go">read →</div>
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" })[c]);
+document.getElementById("list").innerHTML = POSTS.map((p, i) => `
+  <a class="post rv" href="posts/${p.file}">
+    <span class="idx">${String(POSTS.length - i).padStart(2, "0")}</span>
+    <div>
+      <div class="date">${p.date}</div>
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.dek)}</p>
+      <div class="tags">${p.tags.map(t => `<span>#${esc(t)}</span>`).join("")}</div>
+    </div>
+    <span class="arr">→</span>
   </a>`).join("");
+document.getElementById("count").textContent = String(POSTS.length).padStart(3, "0") + " entries";
+document.getElementById("yr").textContent = new Date().getFullYear();
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// theme switcher
+const root = document.documentElement;
+const btns = [...document.querySelectorAll(".themes button")];
+const css = (v) => getComputedStyle(root).getPropertyValue(v).trim();
+let colors = {};
+function setTheme(t) {
+  root.dataset.theme = t;
+  try { localStorage.setItem("rb-theme", t); } catch {}
+  btns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === t)));
+  colors = { bg: css("--bg"), grid: css("--grid"), glow: css("--glow"), ink: css("--muted") };
+  if (reduce) draw(0);
+}
+btns.forEach(b => b.addEventListener("click", () => setTheme(b.dataset.t)));
+
+// glitch on load + hover
+const name = document.getElementById("name");
+const glitch = () => { name.classList.remove("glitch"); void name.offsetWidth; name.classList.add("glitch"); };
+if (!reduce) { setTimeout(glitch, 650); name.addEventListener("mouseenter", glitch); }
+
+// bar turns solid past the hero
+const bar = document.getElementById("bar");
+const hero = document.getElementById("top");
+addEventListener("scroll", () => bar.classList.toggle("solid", scrollY > hero.offsetHeight - 80), { passive: true });
+
+// scroll reveal
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && (e.target.classList.add("on"), io.unobserve(e.target))), { threshold: .15 });
+document.querySelectorAll(".rv").forEach(el => io.observe(el));
+
+// hero field: perspective grid + drifting decision probabilities
+const cv = document.getElementById("field"), cx = cv.getContext("2d");
+const TOKENS = ["risk 0.97","choice → sign_in 0.79","noul 0.99","stuck 0.96","verify ✓ 0.99","risk 0.09","choice → urgent 0.95",
+  "done 0.01","risk 0.94","read_only 0.88","approve?","noul 0.12","score 0.70","choice → TX-104 0.77"];
+let W, H, dpr, drops = [];
+function size() {
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drops = Array.from({ length: Math.round(W / 70) }, () => spawn(true));
+}
+function spawn(init) {
+  return { x: W * (.35 + Math.random() * .65), y: init ? Math.random() * H * .62 : H * .62,
+    v: .15 + Math.random() * .35, t: TOKENS[Math.random() * TOKENS.length | 0], s: 10 + Math.random() * 4, hot: Math.random() < .18 };
+}
+function draw(time) {
+  const hz = H * .62, vx = W * .62, rgb = colors.grid, glow = colors.glow;
+  cx.fillStyle = colors.bg; cx.fillRect(0, 0, W, H);
+  // horizon glow
+  const g = cx.createRadialGradient(vx, hz, 0, vx, hz, W * .55);
+  g.addColorStop(0, `rgba(${glow},.28)`); g.addColorStop(1, `rgba(${glow},0)`);
+  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  cx.strokeStyle = `rgba(${glow},.7)`; cx.lineWidth = 1;
+  cx.beginPath(); cx.moveTo(0, hz); cx.lineTo(W, hz); cx.stroke();
+  // receding horizontals
+  const off = reduce ? 0 : (time / 2600) % 1;
+  for (let i = 0; i < 22; i++) {
+    const z = (i + off) / 22, y = hz + (H - hz) * z * z;
+    cx.strokeStyle = `rgba(${rgb},${(.08 + z * .55).toFixed(3)})`;
+    cx.beginPath(); cx.moveTo(0, y); cx.lineTo(W, y); cx.stroke();
+  }
+  // converging verticals
+  for (let i = -24; i <= 24; i++) {
+    const xb = vx + i * W * .09;
+    cx.strokeStyle = `rgba(${rgb},${(.42 - Math.abs(i) * .012).toFixed(3)})`;
+    cx.beginPath(); cx.moveTo(vx + i * 6, hz); cx.lineTo(xb, H); cx.stroke();
+  }
+  // data rain rising above the horizon
+  cx.textBaseline = "middle";
+  for (const d of drops) {
+    if (!reduce) d.y -= d.v;
+    const a = Math.max(0, Math.min(1, d.y / hz)) * (W < 760 ? .3 : .75);
+    cx.font = `${d.s}px ui-monospace, Menlo, monospace`;
+    cx.fillStyle = d.hot ? `rgba(${glow},${a})` : `rgba(${rgb},${a * .7})`;
+    cx.fillText(d.t, d.x, d.y);
+    if (d.y < 20) Object.assign(d, spawn(false));
+  }
+}
+let heroVisible = true;
+new IntersectionObserver(([e]) => heroVisible = e.isIntersecting).observe(hero);
+function loop(t) { if (heroVisible) draw(t); requestAnimationFrame(loop); }
+addEventListener("resize", () => { size(); if (reduce) draw(0); });
+setTheme(root.dataset.theme || "neon");
+size();
+reduce ? draw(0) : requestAnimationFrame(loop);
 </script>
 </body>
 </html>
