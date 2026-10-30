@@ -1,15 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme-reload>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Decisions APIs: evaluation report</title>
 <link rel="icon" href="data:," />
+<script>
+// Runs in <head> before paint. Theme choice is shared with the blog index via localStorage("rb-theme").
+(() => {
+  const THEMES = ["neon", "paper", "term"];
+  const root = document.documentElement;
+  let t = "neon";
+  try { const s = localStorage.getItem("rb-theme"); if (THEMES.includes(s)) t = s; } catch {}
+  root.dataset.theme = t;
+  document.addEventListener("DOMContentLoaded", () => {
+    const nav = document.querySelector("nav.top .inner");
+    if (!nav) return;
+    const box = document.createElement("span");
+    box.className = "rb-themes";
+    const blog = location.pathname.includes("/posts/") ? `<a href="../">← all posts</a>` : "";
+    box.innerHTML = `${blog}<span class="sw" role="group" aria-label="Color theme">${THEMES.map(x =>
+      `<button data-t="${x}" aria-pressed="${x === t}">${x}</button>`).join("")}</span>`;
+    nav.appendChild(box);
+    box.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-t]");
+      if (!b || b.dataset.t === root.dataset.theme) return;
+      try { localStorage.setItem("rb-theme", b.dataset.t); } catch {}
+      // charts are drawn with the active palette, so pages that draw them re-render via reload
+      if (root.hasAttribute("data-theme-reload")) return location.reload();
+      root.dataset.theme = b.dataset.t;
+      box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    });
+  });
+})();
+</script>
 <style>
+/* shared report themes — keys match the blog's rb-theme values */
+:root,[data-theme="paper"]{
+  --bg:#fafaf8; --surface:#fff; --surface2:#f1f0ec; --ink:#16161a; --ink2:#3f4148; --muted:#6b6f7a;
+  --rule:#e3e2dd; --line2:#eeeee9; --track:#e8e7e2; --grey:#9aa0ab;
+  --accent:#4f46e5; --accent-mid:#7c74ec; --accent-soft:#c7c5f4; --accent-faint:#dedcf9;
+  --green:#16a34a; --red:#dc2626; --amber:#b45309; --purple:#7e22ce;
+  --code-bg:#16161a; --code-ink:#e8e6e1; --glow:transparent;
+}
+[data-theme="neon"]{
+  --bg:#07060d; --surface:#0f0d1c; --surface2:#17142a; --ink:#ece9ff; --ink2:#c9c5e6; --muted:#8c88aa;
+  --rule:#2a2640; --line2:#1d1a30; --track:#1c1930; --grey:#6c6890;
+  --accent:#00f0ff; --accent-mid:#00a8b5; --accent-soft:#1b7f8a; --accent-faint:#0c3a44;
+  --green:#34d399; --red:#ff4d6d; --amber:#fbbf24; --purple:#ff2bd6;
+  --code-bg:#000; --code-ink:#e6e3ff; --glow:rgba(0,240,255,.35);
+}
+[data-theme="term"]{
+  --bg:#020904; --surface:#06140b; --surface2:#0b1f12; --ink:#c3ffd2; --ink2:#9ddcae; --muted:#5a9a6b;
+  --rule:#163d22; --line2:#0f2a18; --track:#133520; --grey:#4f7d5c;
+  --accent:#39ff6a; --accent-mid:#2fcf58; --accent-soft:#1f8a3e; --accent-faint:#124d24;
+  --green:#39ff6a; --red:#ff5f56; --amber:#ffd166; --purple:#b6ff3b;
+  --code-bg:#000; --code-ink:#c3ffd2; --glow:rgba(57,255,106,.3);
+}
+html{background:var(--bg);color-scheme:light}
+[data-theme="neon"],[data-theme="term"]{color-scheme:dark}
+body{transition:background .3s,color .3s}
+h1{text-shadow:0 0 28px var(--glow)}
+.rb-themes{margin-left:auto;display:flex;align-items:center;gap:14px}
+.rb-themes .sw{display:flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.rb-themes button{all:unset;cursor:pointer;padding:3px 9px;font:10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rb-themes button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.rb-themes button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 :root{
-  --bg:#fafaf8; --ink:#16161a; --muted:#6b6f7a; --rule:#e3e2dd;
-  --accent:#4f46e5; --accent-soft:#c7c5f4; --green:#16a34a; --red:#dc2626;
-  --grey:#9aa0ab;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
@@ -17,7 +75,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-nav.top{position:sticky;top:0;z-index:10;background:rgba(250,250,248,.92);backdrop-filter:blur(6px);
+nav.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(6px);
   border-bottom:1px solid var(--rule);font:12.5px var(--mono)}
 nav.top .inner{max-width:1080px;margin:0 auto;padding:8px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
 nav.top a{color:var(--muted)}
@@ -28,10 +86,10 @@ nav.top a:hover{color:var(--ink);text-decoration:none}
 h1{font-size:40px;line-height:1.15;margin:10px 0 12px;letter-spacing:-.01em}
 .hero .meta{font:13px var(--mono);color:var(--muted)}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:36px 0 24px}
-.card{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
 .card .n{font:26px/1.2 var(--mono);letter-spacing:-.02em}
 .card .l{font:12px var(--mono);color:var(--muted);margin-top:4px}
-.summary{max-width:68ch;color:#33343c}
+.summary{max-width:68ch;color:var(--ink2)}
 .sec{border-top:1px solid var(--rule);padding:56px 0}
 .sec .num{font:13px var(--mono);color:var(--accent);letter-spacing:.15em}
 h2{font-size:24px;margin:6px 0 4px;letter-spacing:-.01em}
@@ -41,8 +99,8 @@ h3{font-size:15px;margin:28px 0 8px;font-weight:600}
 .aside{color:var(--muted);font-size:14px;border-left:3px solid var(--rule);padding:2px 14px;margin:22px 0 0;max-width:70ch}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}
 th{text-align:left;font:11.5px var(--mono);color:var(--muted);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--rule)}
-td{padding:8px 10px;border-bottom:1px solid #eeeee9;vertical-align:top}
-tr.tint td{background:#fdf3f3}
+td{padding:8px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+tr.tint td{background:color-mix(in srgb,var(--red) 8%,var(--surface))}
 .mono{font-family:var(--mono);font-size:12.5px}
 td.mono{overflow-wrap:anywhere}
 .twrap{overflow-x:auto}
@@ -105,8 +163,10 @@ const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(
 const fmt = (n,d=2) => Number(n).toFixed(d);
 const comm = (n) => Number(n).toLocaleString("en-US");
 const short = (id) => (D.models.find(m=>m.id===id)||{}).short || id;
-const C = {accent:"#4f46e5",soft:"#c7c5f4",ink:"#16161a",mut:"#6b6f7a",grey:"#9aa0ab",
-  green:"#16a34a",red:"#dc2626",track:"#e8e7e2",rule:"#e3e2dd"};
+const cssv = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const C = {accent:cssv("--accent"),soft:cssv("--accent-soft"),ink:cssv("--ink"),mut:cssv("--muted"),grey:cssv("--grey"),
+  green:cssv("--green"),red:cssv("--red"),track:cssv("--track"),rule:cssv("--rule"),mid:cssv("--accent-mid"),
+  faint:cssv("--accent-faint"),surface:cssv("--surface"),line2:cssv("--line2"),bg:cssv("--bg"),amber:cssv("--amber")};
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const io = new IntersectionObserver((es)=>{
   for(const e of es) if(e.isIntersecting){e.target.classList.add("shown");io.unobserve(e.target);}
@@ -193,7 +253,7 @@ $("hero").innerHTML=`
         const tx=pad+(i-min)/(max-min)*W;
         const anchor=i===min?"start":i===max?"end":"middle";
         const lx=i===min?pad:i===max?pad+W:tx;
-        html+=`<circle cx="${tx}" cy="26" r="4" fill="#fff" stroke="${C.rule}"/>${T(lx,52,c.legend[String(i)],{a:anchor,fs:10,fill:C.mut})}`;
+        html+=`<circle cx="${tx}" cy="26" r="4" fill="${C.surface}" stroke="${C.rule}"/>${T(lx,52,c.legend[String(i)],{a:anchor,fs:10,fill:C.mut})}`;
       }
       html+=`<circle class="dot" cx="${x}" cy="26" r="6" fill="${C.accent}"/>${T(x,12,String(c.answer),{a:"middle",fs:12,w:700})}</svg>`;
     }
@@ -211,7 +271,7 @@ $("hero").innerHTML=`
     tip:`${r.id}: $${r.measuredPer1kUsd} per 1,000 calls · n=260 · listed $${r.listedPerMTok} per 1M input tokens`})),
     {aria:"measured cost per 1,000 calls by model"});
   const tot=D.spend.reduce((s,r)=>s+r.costUsd,0), totCalls=D.spend.reduce((s,r)=>s+r.calls,0);
-  const cols=[C.accent,"#7c74ec",C.soft,"#dedcf9"];
+  const cols=[C.accent,C.mid,C.soft,C.faint];
   let x=40, stack=`<svg viewBox="0 0 920 44" role="img" aria-label="spend by activity">`;
   const ws=D.spend.map(r=>r.costUsd/tot*840);
   ws.forEach((w,i)=>{
@@ -242,7 +302,7 @@ $("hero").innerHTML=`
 {
   const rows=D.classification.rows;
   const metrics=[["banking77","banking77"],["priorityExact","priority exact"],["priorityWithin1","priority within 1"]];
-  const colors=[C.accent,"#7c74ec",C.soft];
+  const colors=[C.accent,C.mid,C.soft];
   let g=`<svg viewBox="0 0 920 ${16+rows.length*3*26+20}" role="img" aria-label="accuracy by model and task">${HATCH}`;
   const labelW=230,barW=520;
   rows.forEach((r,mi)=>{
@@ -273,7 +333,7 @@ $("hero").innerHTML=`
   }
   for(let xv=0;xv<=xmax;xv+=100){
     const x=xs(xv);
-    sc+=`<line x1="${x}" y1="${pt}" x2="${x}" y2="${SH-pb}" stroke="#f0efe9"/>${T(x,SH-pb+18,xv,{a:"middle",fs:10,fill:C.mut})}`;
+    sc+=`<line x1="${x}" y1="${pt}" x2="${x}" y2="${SH-pb}" stroke="${C.line2}"/>${T(x,SH-pb+18,xv,{a:"middle",fs:10,fill:C.mut})}`;
   }
   sc+=T(SW-pr,SH-8,"median latency ms (whisker p50–p90)",{a:"end",fs:10.5,fill:C.mut});
   pts.forEach(r=>{
@@ -282,7 +342,7 @@ $("hero").innerHTML=`
     sc+=`<line class="whisk" x1="${x}" y1="${y}" x2="${x2}" y2="${y}" stroke="${C.grey}" stroke-width="1.5"/>`;
     sc+=`<circle class="whisk" cx="${x2}" cy="${y}" r="3" fill="none" stroke="${C.grey}"/>`;
     sc+=`<circle class="dot" cx="${x}" cy="${y}" r="6" fill="${C.accent}"/>`;
-    sc+=`<g class="lbl"><text x="${x+9}" y="${y-9}" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="${C.ink}" paint-order="stroke" stroke="#fafaf8" stroke-width="4" stroke-linejoin="round">${esc(short(r.id))}</text></g></g>`;
+    sc+=`<g class="lbl"><text x="${x+9}" y="${y-9}" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="${C.ink}" paint-order="stroke" stroke="${C.bg}" stroke-width="4" stroke-linejoin="round">${esc(short(r.id))}</text></g></g>`;
   });
   sc+=`</svg>`;
   $("classification").innerHTML=`<div class="num">03</div><h2>Classification performance</h2>
@@ -390,7 +450,7 @@ $("hero").innerHTML=`
 {
   const dot=(v)=>{
     const val=v.toLowerCase();
-    const col=val.startsWith("yes")?C.green:val.startsWith("partly")?"#d9a441":C.red;
+    const col=val.startsWith("yes")?C.green:val.startsWith("partly")?C.amber:C.red;
     return `<span class="dotkey" style="background:${col}"></span>${esc(v)}`;
   };
   const optRows=D.aws.options.map(o=>`<tr><td><b>${esc(o.option)}</b></td><td>${dot(o.probabilities)}</td><td>${dot(o.inAccount)}</td><td class="muted" style="font-size:13px">${esc(o.notes)}</td></tr>`).join("");
@@ -402,7 +462,7 @@ $("hero").innerHTML=`
   const cons=D.aws.considerations.map(c=>`<li><b>${esc(c.title)}.</b> ${esc(c.body)}</li>`).join("");
   /* architecture svg */
   const box=(x,y,w,hgt,label,sub,stroke=C.ink)=>{
-    return `<rect x="${x}" y="${y}" width="${w}" height="${hgt}" rx="8" fill="#fff" stroke="${stroke}" stroke-width="1.2"/>
+    return `<rect x="${x}" y="${y}" width="${w}" height="${hgt}" rx="8" fill="${C.surface}" stroke="${stroke}" stroke-width="1.2"/>
       ${T(x+w/2,y+(sub?hgt/2-6:hgt/2+4),label,{a:"middle",fs:11.5,w:600})}`+(sub?T(x+w/2,y+hgt/2+10,sub,{a:"middle",fs:9.5,fill:C.mut}):"");
   };
   const arr=(x1,y1,x2,y2,label)=>{
