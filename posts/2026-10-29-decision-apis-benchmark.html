@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Decisions APIs: evaluation report</title>
+<link rel="icon" href="data:," />
+<style>
+:root{
+  --bg:#fafaf8; --ink:#16161a; --muted:#6b6f7a; --rule:#e3e2dd;
+  --accent:#4f46e5; --accent-soft:#c7c5f4; --green:#16a34a; --red:#dc2626;
+  --grey:#9aa0ab;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+nav.top{position:sticky;top:0;z-index:10;background:rgba(250,250,248,.92);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--rule);font:12.5px var(--mono)}
+nav.top .inner{max-width:1080px;margin:0 auto;padding:8px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+nav.top a{color:var(--muted)}
+nav.top a:hover{color:var(--ink);text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.hero{padding:72px 0 40px}
+.hero .eyebrow{font:12px var(--mono);color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:40px;line-height:1.15;margin:10px 0 12px;letter-spacing:-.01em}
+.hero .meta{font:13px var(--mono);color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:36px 0 24px}
+.card{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:16px 18px}
+.card .n{font:26px/1.2 var(--mono);letter-spacing:-.02em}
+.card .l{font:12px var(--mono);color:var(--muted);margin-top:4px}
+.summary{max-width:68ch;color:#33343c}
+.sec{border-top:1px solid var(--rule);padding:56px 0}
+.sec .num{font:13px var(--mono);color:var(--accent);letter-spacing:.15em}
+h2{font-size:24px;margin:6px 0 4px;letter-spacing:-.01em}
+h3{font-size:15px;margin:28px 0 8px;font-weight:600}
+.take{color:var(--muted);margin:0 0 28px;max-width:70ch}
+.note{font:12.5px var(--mono);color:var(--muted);margin-top:10px}
+.aside{color:var(--muted);font-size:14px;border-left:3px solid var(--rule);padding:2px 14px;margin:22px 0 0;max-width:70ch}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0}
+th{text-align:left;font:11.5px var(--mono);color:var(--muted);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--rule)}
+td{padding:8px 10px;border-bottom:1px solid #eeeee9;vertical-align:top}
+tr.tint td{background:#fdf3f3}
+.mono{font-family:var(--mono);font-size:12.5px}
+td.mono{overflow-wrap:anywhere}
+.twrap{overflow-x:auto}
+svg{display:block;width:100%;height:auto;margin:4px 0}
+.grow .bar{transform:scaleX(0);transform-box:fill-box;transform-origin:left center;transition:transform .5s ease-out}
+.grow .dot,.grow .lbl,.grow .whisk,.grow .fade{opacity:0;transition:opacity .5s ease-out}
+.grow.shown .bar{transform:scaleX(1)}
+.grow.shown .dot,.grow.shown .lbl,.grow.shown .whisk,.grow.shown .fade{opacity:1}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.concept{border-top:2px solid var(--ink);padding-top:14px}
+.concept .t{font:11.5px var(--mono);color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.concept .q{font-weight:600;margin:8px 0 2px}
+.concept .d{font-size:13px;color:var(--muted);margin-bottom:12px}
+ul.plain{padding-left:20px;margin:8px 0}
+ul.plain li{margin:5px 0}
+ol.consider{counter-reset:c;padding:0;list-style:none}
+ol.consider li{counter-increment:c;margin:0 0 14px;padding-left:34px;position:relative;max-width:75ch}
+ol.consider li::before{content:counter(c,decimal-leading-zero);position:absolute;left:0;top:1px;font:12px var(--mono);color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font:12px var(--mono);color:var(--muted)}
+.legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.dotkey{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:baseline;margin-right:6px}
+footer{border-top:1px solid var(--rule);padding:30px 0 60px;font:12px var(--mono);color:var(--muted)}
+.mini{height:5px;border-radius:3px;background:var(--accent);margin-top:4px;transform-origin:left}
+td .miniwrap{width:64px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}h1{font-size:30px}}
+@media print{
+  nav.top{display:none}
+  .sec{page-break-before:always}
+  .grow .bar{transform:none!important}
+  .grow .dot,.grow .lbl,.grow .whisk,.grow .fade{opacity:1!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .grow .bar{transition:none;transform:scaleX(1)}
+  .grow .dot,.grow .lbl,.grow .whisk,.grow .fade{transition:none;opacity:1}
+}
+</style>
+</head>
+<body>
+<script type="application/json" id="data">
+{"meta":{"title":"Decisions APIs: evaluation report","date":"2026-10-29","repo":"decisions-agent","status":"Working prototype, local only","pricesCheckedOn":"2026-10-29","conceptsSource":"Captured Jev response from OpenRouter's Jev tutorial (https://openrouter.ai/docs/guides/community/jev-tutorial)"},"headline":{"liveCalls":6890,"totalCostUsd":0.1385,"modelsTested":6,"testsPassed":68,"testsSkipped":1,"testsFailed":0,"highCriticalApprovedAfterRedesign":0,"highCriticalTotal":60},"models":[{"id":"perplexity/pplx-decider-v1.2","short":"Perplexity Decider v1.2"},{"id":"inception/mercury-decide","short":"Mercury Decide"},{"id":"liquid/d1.1","short":"Liquid d1.1"},{"id":"openai/gpt-6-luna-decisions","short":"GPT-6 Luna Decisions"},{"id":"typesafe/jev-1.14","short":"Jev 1.14"},{"id":"cloudflare/clef-flash","short":"Clef Flash"}],"concepts":[{"type":"noul","question":"Is this a bug report?","description":"probability of \"yes\", 0-1","answer":0.96},{"type":"choice","question":"Which team should own this ticket?","description":"one option, plus a probability for each","answer":"payments","probabilities":{"payments":0.78,"frontend":0.22,"account":0}},{"type":"score","question":"How urgent is this ticket?","description":"position on an ordered scale","answer":1.99,"scale":{"min":0,"max":2},"legend":{"0":"next release","1":"this week","2":"blocking revenue"}}],"spend":[{"activity":"First comparisons (one ticket, 2 runs)","calls":11,"costUsd":0.00005},{"activity":"Hand-labeled triage benchmark","calls":96,"costUsd":0.00157},{"activity":"Hugging Face benchmark, full run plus smoke run","calls":2746,"costUsd":0.06008},{"activity":"Gate redesign: 4 gate-only reruns plus a smoke run","calls":4037,"costUsd":0.07681}],"costPer1k":{"note":"Measured on 260 classification calls per model (Hugging Face samples). Listed price is input USD per 1M tokens.","rows":[{"id":"liquid/d1.1","listedPerMTok":0.02,"measuredPer1kUsd":0.0074},{"id":"perplexity/pplx-decider-v1.2","listedPerMTok":0.02,"measuredPer1kUsd":0.0133},{"id":"inception/mercury-decide","listedPerMTok":0.02,"measuredPer1kUsd":0.0207},{"id":"cloudflare/clef-flash","listedPerMTok":0.038,"measuredPer1kUsd":0.0257},{"id":"typesafe/jev-1.14","listedPerMTok":0.042,"measuredPer1kUsd":0.0493},{"id":"openai/gpt-6-luna-decisions","listedPerMTok":0.1,"measuredPer1kUsd":0.0655}]},"classification":{"note":"Exact-match accuracy. banking77 n=100, ticket priority n=80 (Luna 79). Clef Flash rejects questions with more than 26 options, so its banking77 result is not comparable.","rows":[{"id":"perplexity/pplx-decider-v1.2","banking77":84,"priorityExact":38,"priorityWithin1":85,"p50ms":175,"p90ms":232},{"id":"inception/mercury-decide","banking77":82,"priorityExact":31,"priorityWithin1":88,"p50ms":270,"p90ms":357},{"id":"liquid/d1.1","banking77":80,"priorityExact":28,"priorityWithin1":80,"p50ms":124,"p90ms":205},{"id":"openai/gpt-6-luna-decisions","banking77":78,"priorityExact":46,"priorityWithin1":94,"p50ms":190,"p90ms":311},{"id":"typesafe/jev-1.14","banking77":72,"priorityExact":26,"priorityWithin1":81,"p50ms":114,"p90ms":160},{"id":"cloudflare/clef-flash","banking77":null,"priorityExact":29,"priorityWithin1":84,"p50ms":295,"p90ms":988}],"excluded":"Ticket queue (9-14% for every model) is excluded: labels are often wrong, and models agreed with each other more than with the labels."},"triage":{"note":"8 hand-labeled tickets x 2 runs. Team: 12 scored answers per model.","rows":[{"id":"typesafe/jev-1.14","team":"12/12","isBug":"12/12","churn":"14/16"},{"id":"openai/gpt-6-luna-decisions","team":"12/12","isBug":"12/12","churn":"12/16"},{"id":"perplexity/pplx-decider-v1.2","team":"12/12","isBug":"12/12","churn":"14/16"},{"id":"liquid/d1.1","team":"11/12","isBug":"12/12","churn":"14/16"},{"id":"inception/mercury-decide","team":"10/12","isBug":"12/12","churn":"12/16"},{"id":"cloudflare/clef-flash","team":"12/12","isBug":"12/12","churn":"12/16"}]},"gate":{"note":"cli-command-risk: 30 safe and 60 high/critical commands, no task text. shell-safety allow: 50 commands, task text omitted because the dataset pairs commands with unrelated tasks.","rows":[{"id":"perplexity/pplx-decider-v1.2","safeApprovedBefore":37,"safeApprovedAfter":57,"highCritApprovedBefore":1,"highCritApprovedAfter":0,"allowApprovedNoTask":44},{"id":"inception/mercury-decide","safeApprovedBefore":40,"safeApprovedAfter":63,"highCritApprovedBefore":4,"highCritApprovedAfter":0,"allowApprovedNoTask":40},{"id":"liquid/d1.1","safeApprovedBefore":3,"safeApprovedAfter":57,"highCritApprovedBefore":2,"highCritApprovedAfter":0,"allowApprovedNoTask":28},{"id":"openai/gpt-6-luna-decisions","safeApprovedBefore":10,"safeApprovedAfter":50,"highCritApprovedBefore":0,"highCritApprovedAfter":0,"allowApprovedNoTask":18},{"id":"typesafe/jev-1.14","safeApprovedBefore":3,"safeApprovedAfter":47,"highCritApprovedBefore":0,"highCritApprovedAfter":0,"allowApprovedNoTask":16},{"id":"cloudflare/clef-flash","safeApprovedBefore":3,"safeApprovedAfter":40,"highCritApprovedBefore":1,"highCritApprovedAfter":0,"allowApprovedNoTask":0}],"staticList":{"before":{"criticalBlocked":9,"criticalTotal":30,"denyBlocked":24,"denyTotal":50,"harmlessBlocked":17,"harmlessTotal":50},"after":{"criticalBlocked":30,"criticalTotal":30,"denyBlocked":33,"denyTotal":50,"harmlessBlocked":20,"harmlessTotal":50}},"remainingDenyApprovals":["git add . / git add . && git commit (allowed by our rules: git can undo local commits)","fltmc load fshelp (Windows driver load), approved by Mercury Decide"],"lessons":["The fixed list is the safety boundary. Model scores only reduce the number of prompts.","How a question is worded matters more than which model answers it.","Quote-aware splitting hid ssh host 'dd if=/dev/zero of=/dev/sda' from the fixed list. The benchmark caught it and it was reverted."],"redesign":"Before: one 'reversible' question plus 'serves the task', both needing 0.9, so it almost never approved (even cat /tmp/app.log fails 'inside the project'). After: the three questions described below, a 0.5 task bar, and fixed-list rules for recursive or world-writable chmod, secret-named variables, disk tools and credential commands. Same 300 commands, same six models."},"recommendations":[{"job":"High-volume classification with many options","model":"Perplexity Decider v1.2","why":"Most accurate on banking77, cheap"},{"job":"Ordered scales (priority, severity)","model":"GPT-6 Luna Decisions","why":"Best exact and within-1 accuracy"},{"job":"Lowest latency","model":"Jev 1.14","why":"114 ms median, 160 ms at the 90th percentile"},{"job":"Agent command gate","model":"Perplexity Decider v1.2 + fixed list","why":"Approves the most safe commands; no high/critical approvals"},{"job":"Avoid for the gate","model":"Mercury Decide","why":"Approved a Windows driver load and more dangerous commands in earlier runs"}],"tests":[{"file":"test/gate.test.ts","checks":"Fixed list blocks 25 dangerous commands with no API call; escaped and hidden-in-quote commands stay blocked; approve/ask/refuse rules; errors become ask; mock never approves"},{"file":"test/hook.test.ts","checks":"Hook output shape; dangerous or bad input gives the normal prompt; no API key means no auto-approve"},{"file":"test/web.test.ts","checks":"Status endpoint exposes no key material; input validation; gate endpoint"},{"file":"test/openrouter.test.ts","checks":"Response parsing; HTTP 402 and network errors become error, never a crash"},{"file":"test/mcp.test.ts","checks":"MCP server starts, lists 4 tools, answers decide"},{"file":"test/mock.test.ts + test/compare.test.ts","checks":"Mock answers repeat exactly; one failing model doesn't break a comparison"},{"file":"test/live.test.ts","checks":"LIVE=1 only: Jev and GPT-6 Luna Decisions on a real ticket (passed 2026-10-29)"}],"datasets":[{"name":"Hand-labeled triage","source":"8 tickets written for this project","rows":"8 x 2 runs","license":"-"},{"name":"Ticket queue / priority","source":"pngwn/system-one-decisions (test split)","rows":"80 + 80","license":"CC-BY-NC-4.0"},{"name":"Bank intents (banking77)","source":"pngwn/system-one-decisions (test split)","rows":"100","license":"CC-BY-NC-4.0"},{"name":"Command safety","source":"tomngdev/shell-safety-v1.1","rows":"150","license":"MIT"},{"name":"Command risk","source":"yannelli/cli-command-risk","rows":"150","license":"CC-BY-4.0"}],"aws":{"options":[{"option":"GPT-6 Luna on Bedrock (openai.gpt-6-luna)","probabilities":"No","inAccount":"Yes","notes":"No Decisions endpoint on Bedrock (Responses, Chat Completions, Converse, Invoke only). One answer, no probability. AWS test: 1,041 ms median vs 236 ms for Jev. $0.10-0.11 per 1M input tokens."},{"option":"Bedrock Custom Model Import + open decision model","probabilities":"Yes (return_logprobs)","inAccount":"Yes","notes":"You host the weights. In AWS's test, Decider 4B and Plumb 4B reached 99.6-99.9% on tool routing. Not tested by us."},{"option":"SageMaker real-time endpoint + open decision model","probabilities":"Yes","inAccount":"Yes","notes":"About $0.08 per 1,000 decisions at full use; idle time is billed."},{"option":"Jev / others via OpenRouter or TypeSafe (current build)","probabilities":"Yes","inAccount":"No","notes":"Jev is not a Bedrock model. Call it from Lambda with the key in Secrets Manager."},{"option":"OpenRouter BYOK with your Bedrock account","probabilities":"No","inAccount":"Partly","notes":"Covers Bedrock chat models, but no decision model on OpenRouter is served by Bedrock."}],"externalBenchmark":{"source":"AWS Builder Center, Testing Decision models (Oct 2026), 1,000 DecisionBench cases","rows":[{"model":"Jev (TypeSafe API)","accuracy":99.9,"p50ms":236,"per1kUsd":0.042},{"model":"GPT-6 Luna (Bedrock)","accuracy":99.9,"p50ms":1041,"per1kUsd":0.084},{"model":"Plumb 4B (SageMaker)","accuracy":99.9,"p50ms":190,"per1kUsd":0.083},{"model":"Decider 4B (SageMaker)","accuracy":99.6,"p50ms":187,"per1kUsd":0.084},{"model":"Strands 2B (SageMaker)","accuracy":95.7,"p50ms":154,"per1kUsd":0.067},{"model":"Qwen3-8B base (SageMaker)","accuracy":98.8,"p50ms":836,"per1kUsd":0.318}]},"considerations":[{"title":"Data policy first","body":"If data must stay in AWS, use Bedrock or SageMaker. The OpenRouter setup sends prompts to outside providers, and the GPT-6 Luna Decisions endpoint there is not zero-data-retention."},{"title":"You lose real probabilities on standard Bedrock models","body":"Converse returns no log probabilities, so confidence thresholds have nothing to read. Use Custom Model Import with return_logprobs or SageMaker, or accept choice-only answers and lean on the fixed list."},{"title":"Keep the decide() contract, add a Bedrock provider","body":"Demos, CLI, MCP server and hook all call one function. A bedrock provider uses the AWS SDK and IAM roles. Rerun the benchmark to compare."},{"title":"Turn on governance features","body":"IAM per model, invocation logging to CloudWatch or S3, application inference profiles for cost tracking (Converse and Invoke only), Guardrails, VPC endpoints. GPT-6 Luna runs in-Region in us-east-1."},{"title":"Extend the gate for AWS commands","body":"Proposed: aws delete-* / terminate-*, aws s3 rm --recursive, aws iam, aws cloudformation delete-stack, cdk deploy|destroy, sam deploy, Bedrock/SageMaker delete-model or delete-endpoint."},{"title":"Coding agents on Bedrock work unchanged","body":"Claude Code can run on Bedrock; the hook doesn't care which model the agent uses."},{"title":"Re-measure on your own data","body":"Label 200-500 of your own tickets or commands and rerun the benchmark for each candidate."}]},"limits":["Sample sizes are small (80-150 rows per task, one run). Differences of a few percent are within noise.","Ticket data is synthetic and its queue labels are unreliable; shell-safety pairs commands with unrelated task text.","AWS figures come from AWS documentation and one AWS Builder Center article; we have not run models on Bedrock or SageMaker.","Prices and model versions change; checked on 2026-10-29."],"sources":[{"label":"AWS Builder Center: Testing Decision models","url":"https://builder.aws.com/content/3K9Kg2rkf4MFl4om180G5PU2n84/testing-decision-models-deep-dive-into-decision-models"},{"label":"Amazon Bedrock model card: GPT-6 Luna","url":"https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-luna.html"},{"label":"AWS blog: log probabilities for Bedrock Custom Model Import","url":"https://aws.amazon.com/blogs/machine-learning/unlock-model-insights-with-log-probability-support-for-amazon-bedrock-custom-model-import/"},{"label":"AWS Builder Center: Jev on AWS","url":"https://builder.aws.com/content/3K0rpiZCCJzqYrmxpWFuJtGotsx/jev-on-aws-building-fast-ai-decision-layers-with-aws"},{"label":"FactualMinds: Jev on AWS with Bedrock","url":"https://www.factualminds.com/blog/jev-typesafe-ai-aws-guide-2026/"},{"label":"Microsoft Learn: Azure OpenAI Decisions API","url":"https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/decisions"},{"label":"OpenRouter docs","url":"https://openrouter.ai/docs"},{"label":"OpenAI Decisions guide","url":"https://developers.openai.com/api/docs/guides/decisions"}]}
+</script>
+<nav class="top"><div class="inner" id="nav"></div></nav>
+<div class="wrap">
+  <div class="hero" id="hero"></div>
+  <section class="sec" id="concepts"></section>
+  <section class="sec" id="costs"></section>
+  <section class="sec" id="classification"></section>
+  <section class="sec" id="triage"></section>
+  <section class="sec" id="gate"></section>
+  <section class="sec" id="recommendations"></section>
+  <section class="sec" id="aws"></section>
+  <section class="sec" id="tests"></section>
+  <section class="sec" id="limits"></section>
+  <footer id="foot"></footer>
+</div>
+<script>
+const D = JSON.parse(document.getElementById("data").textContent);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmt = (n,d=2) => Number(n).toFixed(d);
+const comm = (n) => Number(n).toLocaleString("en-US");
+const short = (id) => (D.models.find(m=>m.id===id)||{}).short || id;
+const C = {accent:"#4f46e5",soft:"#c7c5f4",ink:"#16161a",mut:"#6b6f7a",grey:"#9aa0ab",
+  green:"#16a34a",red:"#dc2626",track:"#e8e7e2",rule:"#e3e2dd"};
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const io = new IntersectionObserver((es)=>{
+  for(const e of es) if(e.isIntersecting){e.target.classList.add("shown");io.unobserve(e.target);}
+},{threshold:.12});
+function animateAll(root){root.querySelectorAll(".grow").forEach(g=>REDUCED?g.classList.add("shown"):io.observe(g));}
+function T(x,y,txt,o={}){
+  return `<text x="${x}" y="${y}" font-family="ui-monospace,Menlo,monospace" font-size="${o.fs||11}" fill="${o.fill||C.ink}" text-anchor="${o.a||"start"}"${o.w?` font-weight="${o.w}"`:""}>${esc(txt)}</text>`;
+}
+const tip=(s)=>`<title>${esc(s)}</title>`;
+const HATCH=`<defs><pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="${C.track}"/><line x1="0" y1="0" x2="0" y2="6" stroke="${C.grey}" stroke-width="1.2"/></pattern></defs>`;
+
+/* generic horizontal bars */
+function hBars(rows,o={}){
+  const W=o.W||920, labelW=o.labelW||200, valW=o.valW||76, noteW=o.noteW||140;
+  const bh=o.bh||20, gap=o.gap||10, barW=W-labelW-valW-noteW-24;
+  const max=o.max ?? Math.max(...rows.map(r=>r.value))*1.1;
+  const H=12+rows.length*(bh+gap)-gap;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria||"bar chart")}">${HATCH}`;
+  rows.forEach((r,i)=>{
+    const y=6+i*(bh+gap), w=Math.max(0,Math.min(1,r.value/max))*barW;
+    s+=`<g>${tip(r.tip||`${r.label}: ${r.display}`)}`;
+    s+=T(labelW-8,y+bh/2+4,r.label,{a:"end",fs:11.5,fill:r.dim?C.mut:C.ink});
+    s+=`<rect x="${labelW}" y="${y}" width="${barW}" height="${bh}" rx="3" fill="${C.track}"/>`;
+    s+=r.hatch
+      ?`<rect class="bar" x="${labelW}" y="${y}" width="${barW*0.4}" height="${bh}" rx="3" fill="url(#hatch)"/>`+T(labelW+8,y+bh/2+4,"n/a",{fs:10,fill:C.mut})
+      :`<rect class="bar" x="${labelW}" y="${y}" width="${w}" height="${bh}" rx="3" fill="${r.fill||C.accent}"/>`;
+    s+=T(labelW+barW+10,y+bh/2+4,r.display,{fs:11.5,w:r.bold?700:400});
+    if(r.note)s+=T(W-6,y+bh/2+4,r.note,{a:"end",fs:10.5,fill:C.mut});
+    s+=`</g>`;
+  });
+  return s+`</svg>`;
+}
+
+/* ---------- nav / hero ---------- */
+const NAV=[["concepts","01 types"],["costs","02 costs"],["classification","03 accuracy"],
+  ["triage","04 triage"],["gate","05 gate"],["recommendations","06 pick"],["aws","07 aws"],
+  ["tests","08 tests"],["limits","09 limits"]];
+$("nav").innerHTML=`<a href="#hero" style="color:${C.ink};font-weight:600">${esc(D.meta.repo)}</a>`+
+  NAV.map(([id,l])=>`<a href="#${id}">${l}</a>`).join("");
+const h=D.headline;
+$("hero").innerHTML=`
+  <div class="eyebrow">evaluation report</div>
+  <h1>${esc(D.meta.title)}</h1>
+  <div class="meta">${esc(D.meta.date)} &middot; ${esc(D.meta.repo)} &middot; ${esc(D.meta.status)}</div>
+  <div class="cards">
+    <div class="card"><div class="n" title="exact: $${h.totalCostUsd}">$${fmt(h.totalCostUsd)}</div><div class="l">total cost</div></div>
+    <div class="card"><div class="n">${comm(h.liveCalls)}</div><div class="l">live calls</div></div>
+    <div class="card"><div class="n">${h.testsPassed} <span style="font-size:15px;color:${C.mut}">passed &middot; ${h.testsSkipped} skipped &middot; ${h.testsFailed} failed</span></div><div class="l">bun test</div></div>
+    <div class="card"><div class="n" style="color:${C.green}">${h.highCriticalApprovedAfterRedesign} <span style="font-size:15px;color:${C.mut}">of ${h.highCriticalTotal}</span></div><div class="l">high/critical approved</div></div>
+  </div>
+  <p class="summary">One client, three demos, a CLI, an MCP server and a Claude Code hook — tested on
+    ${h.modelsTested} decision models through OpenRouter. Perplexity Decider v1.2 is the best value for
+    classification, GPT-6 Luna Decisions wins ordered scales, Jev 1.14 is the fastest, and after the gate
+    redesign no model approved any high- or critical-risk command.</p>`;
+
+/* ---------- 01 concepts ---------- */
+{
+  let html=`<div class="num">01</div><h2>What a decision API is</h2>
+    <p class="take">Typed answers instead of free text — your code branches on the number directly.</p><div class="grid3">`;
+  for(const c of D.concepts){
+    html+=`<div class="concept"><div class="t">${esc(c.type)}</div>
+      <div class="q">&ldquo;${esc(c.question)}&rdquo;</div><div class="d">${esc(c.description)}</div><div class="grow">`;
+    if(c.type==="noul"){
+      html+=`<svg viewBox="0 0 300 46" role="img" aria-label="noul example ${c.answer}">
+        <g>${tip(`yes ${c.answer}`)}<rect x="0" y="16" width="300" height="8" rx="4" fill="${C.track}"/>
+        <rect class="bar" x="0" y="16" width="${c.answer*300}" height="8" rx="4" fill="${C.accent}"/></g>
+        ${T(0,42,"yes "+c.answer,{fs:12,w:700})}${T(300,42,"no "+fmt(1-c.answer),{a:"end",fs:11,fill:C.mut})}</svg>`;
+    }else if(c.type==="choice"){
+      const probs=Object.entries(c.probabilities).sort((a,b)=>b[1]-a[1]);
+      html+=`<svg viewBox="0 0 300 ${probs.length*26+8}" role="img" aria-label="choice example ${c.answer}">`;
+      probs.forEach(([k,v],i)=>{
+        const y=i*26+4, hot=k===c.answer;
+        html+=`<g>${tip(`${k}: ${v}`)}${T(0,y+12,k,{fs:11,fill:hot?C.ink:C.mut})}
+          <rect x="86" y="${y+3}" width="150" height="8" rx="4" fill="${C.track}"/>
+          <rect class="bar" x="86" y="${y+3}" width="${v*150}" height="8" rx="4" fill="${hot?C.accent:C.soft}"/>
+          ${T(244,y+12,fmt(v),{fs:11,fill:C.mut})}</g>`;
+      });
+      html+=`</svg>`;
+    }else{
+      const {min,max}=c.scale,W=260,pad=20,x=pad+(c.answer-min)/(max-min)*W;
+      html+=`<svg viewBox="0 0 300 56" role="img" aria-label="score example ${c.answer}">
+        <line x1="${pad}" y1="26" x2="${pad+W}" y2="26" stroke="${C.track}" stroke-width="8" stroke-linecap="round"/>`;
+      for(let i=min;i<=max;i++){
+        const tx=pad+(i-min)/(max-min)*W;
+        const anchor=i===min?"start":i===max?"end":"middle";
+        const lx=i===min?pad:i===max?pad+W:tx;
+        html+=`<circle cx="${tx}" cy="26" r="4" fill="#fff" stroke="${C.rule}"/>${T(lx,52,c.legend[String(i)],{a:anchor,fs:10,fill:C.mut})}`;
+      }
+      html+=`<circle class="dot" cx="${x}" cy="26" r="6" fill="${C.accent}"/>${T(x,12,String(c.answer),{a:"middle",fs:12,w:700})}</svg>`;
+    }
+    html+=`</div></div>`;
+  }
+  $("concepts").innerHTML=html+`</div><p class="note">${esc(D.meta.conceptsSource)}</p>`;
+  animateAll($("concepts"));
+}
+
+/* ---------- 02 costs ---------- */
+{
+  const rows=[...D.costPer1k.rows].sort((a,b)=>a.measuredPer1kUsd-b.measuredPer1kUsd);
+  const bars=hBars(rows.map(r=>({label:short(r.id),value:r.measuredPer1kUsd,
+    display:`$${fmt(r.measuredPer1kUsd,4)}`,note:`$${fmt(r.listedPerMTok,3)}/1M listed`,
+    tip:`${r.id}: $${r.measuredPer1kUsd} per 1,000 calls · n=260 · listed $${r.listedPerMTok} per 1M input tokens`})),
+    {aria:"measured cost per 1,000 calls by model"});
+  const tot=D.spend.reduce((s,r)=>s+r.costUsd,0), totCalls=D.spend.reduce((s,r)=>s+r.calls,0);
+  const cols=[C.accent,"#7c74ec",C.soft,"#dedcf9"];
+  let x=40, stack=`<svg viewBox="0 0 920 44" role="img" aria-label="spend by activity">`;
+  const ws=D.spend.map(r=>r.costUsd/tot*840);
+  ws.forEach((w,i)=>{
+    if(w<2){
+      const big=ws.indexOf(Math.max(...ws));
+      ws[big]-=2-w; ws[i]=2;
+    }
+  });
+  D.spend.forEach((r,i)=>{
+    const w=ws[i];
+    stack+=`<g>${tip(`${r.activity}: ${comm(r.calls)} calls · $${r.costUsd}`)}<rect class="bar" x="${x}" y="6" width="${w}" height="22" fill="${cols[i%4]}"/></g>`;
+    x+=w;
+  });
+  stack+=`${T(40,40,"$"+fmt(tot)+" total",{fs:10.5,fill:C.mut})}${T(880,40,comm(totCalls)+" calls",{a:"end",fs:10.5,fill:C.mut})}</svg>`;
+  const legend=D.spend.map((r,i)=>`<span><span class="sw" style="background:${cols[i%4]}"></span>${esc(r.activity)} · ${comm(r.calls)} calls · $${r.costUsd}</span>`).join("");
+  const lo=Math.round(Math.min(...rows.map(r=>r.measuredPer1kUsd))*1000);
+  const hi=Math.round(Math.max(...rows.map(r=>r.measuredPer1kUsd))*1000);
+  $("costs").innerHTML=`<div class="num">02</div><h2>Costs</h2>
+    <p class="take">$${fmt(h.totalCostUsd)} for ${comm(h.liveCalls)} live calls — cost won't decide the model choice; accuracy and safety will.</p>
+    <h3>Measured cost per 1,000 calls</h3><div class="grow">${bars}</div>
+    <p class="note">${esc(D.costPer1k.note)}</p>
+    <h3>Where the money went</h3><div class="grow">${stack}</div><div class="legend">${legend}</div>
+    <p style="margin-top:20px">1M calls/month &asymp; <b class="mono">$${lo}&ndash;$${hi}</b></p>`;
+  animateAll($("costs"));
+}
+
+/* ---------- 03 classification ---------- */
+{
+  const rows=D.classification.rows;
+  const metrics=[["banking77","banking77"],["priorityExact","priority exact"],["priorityWithin1","priority within 1"]];
+  const colors=[C.accent,"#7c74ec",C.soft];
+  let g=`<svg viewBox="0 0 920 ${16+rows.length*3*26+20}" role="img" aria-label="accuracy by model and task">${HATCH}`;
+  const labelW=230,barW=520;
+  rows.forEach((r,mi)=>{
+    metrics.forEach(([k,label],j)=>{
+      const y=12+(mi*3+j)*26, v=r[k];
+      const name=j===0?short(r.id):"";
+      if(j===0)g+=T(0,y+14,name,{fs:11.5,w:600});
+      g+=`<g>${tip(`${r.id} · ${label}: ${v===null?"not comparable (rejects >26 options)":v+"%"} · n=${k==="banking77"?100:(r.id.includes("gpt-6")?79:80)}`)}`;
+      g+=T(labelW-8,y+14,label,{a:"end",fs:10,fill:C.mut});
+      g+=`<rect x="${labelW}" y="${y}" width="${barW}" height="14" rx="3" fill="${C.track}"/>`;
+      g+=v===null
+        ?`<rect class="bar" x="${labelW}" y="${y}" width="120" height="14" rx="3" fill="url(#hatch)"/>`
+        :`<rect class="bar" x="${labelW}" y="${y}" width="${v/100*barW}" height="14" rx="3" fill="${colors[j]}"/>`;
+      g+=T(labelW+barW+10,y+14,v===null?"n/a":v+"%",{fs:11,fill:v===null?C.mut:C.ink});
+      g+=`</g>`;
+    });
+  });
+  g+=`</svg>`;
+  /* scatter: x p50 latency, y banking77 */
+  const pts=rows.filter(r=>r.banking77!==null);
+  const SW=920,SH=340,pl=60,pr=140,pt=26,pb=40;
+  const xmax=Math.ceil(Math.max(...pts.map(r=>r.p90ms))/100)*100;
+  const xs=(v)=>pl+v/xmax*(SW-pl-pr), ys=(v)=>pt+(100-v)/30*(SH-pt-pb);
+  let sc=`<svg viewBox="0 0 ${SW} ${SH}" role="img" aria-label="accuracy vs latency scatter">`;
+  for(let yv=70;yv<=100;yv+=10){
+    const y=ys(yv);
+    sc+=`<line x1="${pl}" y1="${y}" x2="${SW-pr}" y2="${y}" stroke="${C.rule}"/>${T(pl-8,y+4,yv+"%",{a:"end",fs:10,fill:C.mut})}`;
+  }
+  for(let xv=0;xv<=xmax;xv+=100){
+    const x=xs(xv);
+    sc+=`<line x1="${x}" y1="${pt}" x2="${x}" y2="${SH-pb}" stroke="#f0efe9"/>${T(x,SH-pb+18,xv,{a:"middle",fs:10,fill:C.mut})}`;
+  }
+  sc+=T(SW-pr,SH-8,"median latency ms (whisker p50–p90)",{a:"end",fs:10.5,fill:C.mut});
+  pts.forEach(r=>{
+    const x=xs(r.p50ms),y=ys(r.banking77),x2=xs(r.p90ms);
+    sc+=`<g>${tip(`${r.id}: ${r.banking77}% · p50 ${r.p50ms}ms · p90 ${r.p90ms}ms`)}`;
+    sc+=`<line class="whisk" x1="${x}" y1="${y}" x2="${x2}" y2="${y}" stroke="${C.grey}" stroke-width="1.5"/>`;
+    sc+=`<circle class="whisk" cx="${x2}" cy="${y}" r="3" fill="none" stroke="${C.grey}"/>`;
+    sc+=`<circle class="dot" cx="${x}" cy="${y}" r="6" fill="${C.accent}"/>`;
+    sc+=`<g class="lbl"><text x="${x+9}" y="${y-9}" font-family="ui-monospace,Menlo,monospace" font-size="11" fill="${C.ink}" paint-order="stroke" stroke="#fafaf8" stroke-width="4" stroke-linejoin="round">${esc(short(r.id))}</text></g></g>`;
+  });
+  sc+=`</svg>`;
+  $("classification").innerHTML=`<div class="num">03</div><h2>Classification performance</h2>
+    <p class="take">Perplexity Decider is most accurate per dollar, GPT-6 Luna wins ordered scales, Jev is fastest.</p>
+    <h3>Accuracy by task (exact match)</h3><div class="grow">${g}</div>
+    <h3>Accuracy vs median latency</h3><div class="grow">${sc}</div>
+    <p class="note">${esc(D.classification.note)} Clef Flash is omitted from the scatter (no comparable banking77 result).</p>
+    <div class="aside">${esc(D.classification.excluded)}</div>`;
+  animateAll($("classification"));
+}
+
+/* ---------- 04 triage ---------- */
+{
+  const frac=(s)=>{const[a,b]=s.split("/").map(Number);return a/b;};
+  const cell=(v)=>`<td><span class="mono">${v}</span><div class="miniwrap"><div class="mini" style="width:${frac(v)*64}px" title="${v}"></div></div></td>`;
+  const trs=D.triage.rows.map(r=>`<tr><td class="mono">${esc(r.id)}</td>${cell(r.team)}${cell(r.isBug)}${cell(r.churn)}</tr>`).join("");
+  $("triage").innerHTML=`<div class="num">04</div><h2>Triage sanity check</h2>
+    <p class="take">On 8 hand-labeled tickets every model routed the team correctly in 10–12 of 12 cases.</p>
+    <table><thead><tr><th>model</th><th>team</th><th>is_bug</th><th>churn_risk</th></tr></thead><tbody>${trs}</tbody></table>
+    <p class="note">${esc(D.triage.note)}</p>`;
+}
+
+/* ---------- 05 gate ---------- */
+{
+  const rows=D.gate.rows;
+  const maxSafe=Math.max(...rows.map(r=>Math.max(r.safeApprovedBefore,r.safeApprovedAfter)))*1.1;
+  /* dumbbell */
+  const DW=920,labelW=190,barW=600,bh=20,gap=14;
+  let db=`<svg viewBox="0 0 ${DW} ${14+rows.length*(bh+gap)}" role="img" aria-label="safe commands approved before and after redesign">`;
+  rows.forEach((r,i)=>{
+    const y=8+i*(bh+gap)+bh/2, x1=labelW+r.safeApprovedBefore/maxSafe*barW, x2=labelW+r.safeApprovedAfter/maxSafe*barW;
+    db+=`<g>${tip(`${r.id}: ${r.safeApprovedBefore}% → ${r.safeApprovedAfter}%`)}`;
+    db+=T(labelW-10,y+4,short(r.id),{a:"end",fs:11.5});
+    db+=`<line class="whisk" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${C.accent}" stroke-width="2.5"/>`;
+    db+=`<circle class="dot" cx="${x1}" cy="${y}" r="5" fill="${C.grey}"/><circle class="dot" cx="${x2}" cy="${y}" r="5" fill="${C.accent}"/>`;
+    db+=`<g class="lbl">${T(x2+10,y+4,r.safeApprovedAfter+"%",{fs:11})}`+
+      (x1-40>labelW+60
+        ?T(x1-10,y+4,r.safeApprovedBefore+"%",{a:"end",fs:10,fill:C.mut})
+        :T(x1+9,y+15,r.safeApprovedBefore+"% before",{fs:9.5,fill:C.mut}))+`</g></g>`;
+  });
+  db+=`</svg>`;
+  /* high/critical before→after */
+  const hmax=Math.max(...rows.map(r=>r.highCritApprovedBefore),1);
+  let hc=`<svg viewBox="0 0 920 ${14+rows.length*(bh+gap)}" role="img" aria-label="high or critical commands approved before and after">`;
+  rows.forEach((r,i)=>{
+    const y=8+i*(bh+gap);
+    hc+=`<g>${tip(`${r.id}: ${r.highCritApprovedBefore} → ${r.highCritApprovedAfter} of 60`)}`;
+    hc+=T(labelW-10,y+bh/2+4,short(r.id),{a:"end",fs:11.5});
+    hc+=`<rect x="${labelW}" y="${y}" width="420" height="${bh}" rx="3" fill="${C.track}"/>`;
+    if(r.highCritApprovedBefore>0)
+      hc+=`<rect class="bar" x="${labelW}" y="${y}" width="${r.highCritApprovedBefore/hmax*420}" height="${bh}" rx="3" fill="${C.red}"/>`;
+    hc+=T(labelW+430,y+bh/2+4,r.highCritApprovedBefore+" → ",{fs:11,fill:r.highCritApprovedBefore?C.red:C.mut});
+    hc+=T(labelW+466,y+bh/2+4,String(r.highCritApprovedAfter)+(r.highCritApprovedAfter===0?" ✓":""),{fs:11.5,w:700,fill:r.highCritApprovedAfter===0?C.green:C.red});
+    hc+=`</g>`;
+  });
+  hc+=`</svg>`;
+  /* allowApprovedNoTask */
+  const allow=hBars(rows.map(r=>({label:short(r.id),value:r.allowApprovedNoTask,display:r.allowApprovedNoTask+"%",
+    tip:`${r.id}: ${r.allowApprovedNoTask}% of 50 shell-safety "allow" commands approved without task text`})),
+    {aria:"shell-safety allow commands approved, no task text",max:60});
+  /* static list */
+  const sl=D.gate.staticList;
+  const pairs=[
+    ["critical blocked","criticalBlocked","criticalTotal","higher is better"],
+    ["deny blocked","denyBlocked","denyTotal","higher is better"],
+    ["harmless blocked","harmlessBlocked","harmlessTotal","lower is better"],
+  ];
+  let st=`<svg viewBox="0 0 920 ${16+pairs.length*54}" role="img" aria-label="fixed list coverage before and after">`;
+  pairs.forEach(([label,k,tot,dir],i)=>{
+    const y=10+i*54,b=sl.before[k]/sl.before[tot],a=sl.after[k]/sl.after[tot];
+    st+=T(0,y+6,label,{fs:12,w:600})+T(190,y+6,dir,{fs:10,fill:C.mut});
+    st+=`<g>${tip(`before: ${sl.before[k]} of ${sl.before[tot]}`)}<rect x="0" y="${y+14}" width="420" height="10" rx="3" fill="${C.track}"/>
+      <rect class="bar" x="0" y="${y+14}" width="${b*420}" height="10" rx="3" fill="${C.grey}"/>${T(430,y+23,"before "+sl.before[k]+"/"+sl.before[tot],{fs:10.5,fill:C.mut})}</g>`;
+    st+=`<g>${tip(`after: ${sl.after[k]} of ${sl.after[tot]}`)}<rect x="0" y="${y+30}" width="420" height="10" rx="3" fill="${C.track}"/>
+      <rect class="bar" x="0" y="${y+30}" width="${a*420}" height="10" rx="3" fill="${C.accent}"/>${T(430,y+39,"after "+sl.after[k]+"/"+sl.after[tot],{fs:10.5,w:600})}</g>`;
+  });
+  st+=`</svg>`;
+  const rem=D.gate.remainingDenyApprovals.map(x=>`<li>${esc(x)}</li>`).join("");
+  const les=D.gate.lessons.map(x=>`<li>${esc(x)}</li>`).join("");
+  $("gate").innerHTML=`<div class="num">05</div><h2>Agent command gate</h2>
+    <p class="take">After the redesign, no model approved any of the ${h.highCriticalTotal} high- or critical-risk commands.</p>
+    <p class="note">${esc(D.gate.redesign)}</p>
+    <h3>Safe commands approved <span class="mono" style="font-weight:400;color:${C.mut}">● before → ● after</span></h3><div class="grow">${db}</div>
+    <h3>High/critical approved (of 60)</h3><div class="grow">${hc}</div>
+    <h3>"Allow"-labelled commands approved, no task text</h3><div class="grow">${allow}</div>
+    <h3>Fixed list coverage</h3><div class="grow">${st}</div>
+    <h3>Remaining deny approvals</h3><ul class="plain">${rem}</ul>
+    <h3>Lessons</h3><ul class="plain">${les}</ul>
+    <p class="note">${esc(D.gate.note)}</p>`;
+  animateAll($("gate"));
+}
+
+/* ---------- 06 recommendations ---------- */
+{
+  const trs=D.recommendations.map(r=>{
+    const avoid=r.job.toLowerCase().includes("avoid");
+    return `<tr${avoid?' class="tint"':""}><td>${esc(r.job)}</td><td class="mono">${esc(r.model)}</td><td>${esc(r.why)}</td></tr>`;
+  }).join("");
+  $("recommendations").innerHTML=`<div class="num">06</div><h2>Which model for which job</h2>
+    <p class="take">Pick per job — and keep Mercury Decide off the gate.</p>
+    <table><thead><tr><th>job</th><th>model</th><th>why</th></tr></thead><tbody>${trs}</tbody></table>`;
+}
+
+/* ---------- 07 aws ---------- */
+{
+  const dot=(v)=>{
+    const val=v.toLowerCase();
+    const col=val.startsWith("yes")?C.green:val.startsWith("partly")?"#d9a441":C.red;
+    return `<span class="dotkey" style="background:${col}"></span>${esc(v)}`;
+  };
+  const optRows=D.aws.options.map(o=>`<tr><td><b>${esc(o.option)}</b></td><td>${dot(o.probabilities)}</td><td>${dot(o.inAccount)}</td><td class="muted" style="font-size:13px">${esc(o.notes)}</td></tr>`).join("");
+  const eb=D.aws.externalBenchmark;
+  const ebBars=hBars(eb.rows.map(r=>({label:r.model,value:r.p50ms,display:r.p50ms+" ms",
+    note:`${r.accuracy}% · $${r.per1kUsd}/1k`,
+    tip:`${r.model}: p50 ${r.p50ms}ms · accuracy ${r.accuracy}% · $${r.per1kUsd} per 1,000 (source: ${eb.source})`})),
+    {aria:"external benchmark median latency",labelW:220,valW:70,noteW:170});
+  const cons=D.aws.considerations.map(c=>`<li><b>${esc(c.title)}.</b> ${esc(c.body)}</li>`).join("");
+  /* architecture svg */
+  const box=(x,y,w,hgt,label,sub,stroke=C.ink)=>{
+    return `<rect x="${x}" y="${y}" width="${w}" height="${hgt}" rx="8" fill="#fff" stroke="${stroke}" stroke-width="1.2"/>
+      ${T(x+w/2,y+(sub?hgt/2-6:hgt/2+4),label,{a:"middle",fs:11.5,w:600})}`+(sub?T(x+w/2,y+hgt/2+10,sub,{a:"middle",fs:9.5,fill:C.mut}):"");
+  };
+  const arr=(x1,y1,x2,y2,label)=>{
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.mut}" stroke-width="1.3" marker-end="url(#ah)"/>`+
+      (label?T(mx,my-4,label,{a:"middle",fs:9.5,fill:C.mut}):"");
+  };
+  const arch=`<svg viewBox="0 0 920 340" role="img" aria-label="suggested AWS architecture">
+    <defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="${C.mut}"/></marker></defs>
+    ${box(10,140,150,60,"App / coding agent")}
+    ${box(230,140,170,60,"Lambda","decide + gate",C.accent)}
+    ${box(470,50,160,54,"Fixed risk list")}
+    ${box(700,10,170,44,"Block / ask human","on match",C.red)}
+    ${box(470,120,160,54,"Provider","on no match")}
+    ${box(700,90,190,56,"Bedrock: imported model","return_logprobs",C.green)}
+    ${box(700,166,190,56,"Bedrock: GPT-6 Luna","Converse · choice only")}
+    ${box(700,242,190,56,"OpenRouter / TypeSafe","key in Secrets Manager")}
+    ${box(230,262,170,44,"CloudWatch","logs + cost/decision")}
+    ${arr(160,170,230,170)}${arr(400,140,470,77)}${arr(630,77,700,32,"match")}
+    ${arr(400,170,470,147)}${arr(630,147,700,118,"in-account")}
+    ${arr(630,147,700,194,"choice only")}${arr(630,147,700,270,"outside AWS")}
+    ${arr(315,200,315,262)}
+  </svg>`;
+  $("aws").innerHTML=`<div class="num">07</div><h2>Tuning for an AWS / Bedrock shop</h2>
+    <p class="take">No decision API runs inside Bedrock today — probabilities need Custom Model Import or SageMaker.</p>
+    <h3>Options on AWS today</h3>
+    <table><thead><tr><th>option</th><th>typed probabilities?</th><th>data stays in account?</th><th>notes</th></tr></thead><tbody>${optRows}</tbody></table>
+    <h3>External benchmark — median latency</h3><div class="grow">${ebBars}</div>
+    <p class="note">Source: ${esc(eb.source)}. These are <b>not our measurements</b>.</p>
+    <h3>Considerations</h3><ol class="consider">${cons}</ol>
+    <h3>Suggested architecture</h3><div class="grow">${arch}</div>`;
+  animateAll($("aws"));
+}
+
+/* ---------- 08 tests & data ---------- */
+{
+  const tRows=D.tests.map(t=>`<tr><td class="mono">${esc(t.file)}</td><td>${esc(t.checks)}</td></tr>`).join("");
+  const dRows=D.datasets.map(d=>`<tr><td><b>${esc(d.name)}</b></td><td>${esc(d.source)}</td><td class="mono">${esc(d.rows)}</td><td class="mono">${esc(d.license)}</td></tr>`).join("");
+  $("tests").innerHTML=`<div class="num">08</div><h2>Tests and data</h2>
+    <p class="take">Everything except the opt-in live test runs offline and free.</p>
+    <h3>Automated tests — ${h.testsPassed} passed, ${h.testsSkipped} skipped, ${h.testsFailed} failed</h3>
+    <table><thead><tr><th>file</th><th>what it checks</th></tr></thead><tbody>${tRows}</tbody></table>
+    <h3>Datasets</h3>
+    <table><thead><tr><th>name</th><th>source</th><th>rows</th><th>license</th></tr></thead><tbody>${dRows}</tbody></table>`;
+}
+
+/* ---------- 09 limits & sources ---------- */
+{
+  const lim=D.limits.map(x=>`<li>${esc(x)}</li>`).join("");
+  const src=D.sources.map(s=>`<li><a href="${esc(s.url)}">${esc(s.label)}</a></li>`).join("");
+  $("limits").innerHTML=`<div class="num">09</div><h2>Limits and sources</h2>
+    <p class="take">Small samples; AWS figures are second-hand.</p>
+    <h3>Limits</h3><ul class="plain">${lim}</ul>
+    <h3>Sources</h3><ul class="plain">${src}</ul>`;
+}
+document.querySelectorAll(".sec table").forEach(t=>{
+  const d=document.createElement("div");d.className="twrap";
+  t.parentNode.insertBefore(d,t);d.appendChild(t);
+});
+$("foot").textContent=`${D.meta.title} · ${D.meta.date} · prices checked ${D.meta.pricesCheckedOn} · ${D.meta.repo}`;
+</script>
+</body>
+</html>
