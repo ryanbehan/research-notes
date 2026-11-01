@@ -31,14 +31,16 @@ Posts are generated in the sibling `decisions-agent` repo (`../decisions-agent` 
 1. `bun run report` builds `docs/report.html` and `docs/qa-report.html` (media embedded).
 2. Copy each into `posts/<date>-<slug>.html` in this repo.
 3. Add/update the entry in `index.html`'s `POSTS` array.
-4. `git add posts index.html && git commit && git push` — pushes to GitHub.
-5. 6. Deploy to Cloudflare Pages (primary, has analytics) — deploy a staged dir so `.git`/`.devin` never ship:
-   ```bash
-   rm -rf /tmp/rb-site && mkdir -p /tmp/rb-site
-   cp index.html .nojekyll /tmp/rb-site/ && cp -R posts /tmp/rb-site/
-   script -q /dev/null npx wrangler pages deploy /tmp/rb-site --project-name=ryanbehan --branch=main --commit-dirty=true
-   ```
-   (`script -q` fakes a TTY — non-interactive wrangler demands a `CLOUDFLARE_API_TOKEN` otherwise.) Verify: `curl -sI https://ryanbehan.pages.dev/` → 200. Note Pages serves clean URLs: `*.html` links 308-redirect to the extension-less path, which is normal.
+4. `git add posts index.html && git commit && git push` — pushing `main` auto-deploys to ryanbehan.pages.dev via the project's git integration (repo `ryanbehan/research-notes`, no build step, output `/`).
+5. Verify: `curl -sI https://ryanbehan.pages.dev/` → 200, and `curl -s https://ryanbehan.pages.dev/posts/<slug> | grep beacon.min.js` confirms the analytics beacon survived. Note Pages serves clean URLs: `*.html` links 308-redirect to the extension-less path, which is normal.
+
+To deploy without pushing (or preview a change), direct-upload a staged dir so only site files ship:
+```bash
+rm -rf /tmp/rb-site && mkdir -p /tmp/rb-site
+cp index.html .nojekyll /tmp/rb-site/ && cp -R posts /tmp/rb-site/
+script -q /dev/null npx wrangler pages deploy /tmp/rb-site --project-name=ryanbehan --branch=main --commit-dirty=true
+```
+(`script -q` fakes a TTY — non-interactive wrangler demands a `CLOUDFLARE_API_TOKEN` otherwise.)
 
 Web Analytics is enabled on the project (cookieless beacon, auto-injected at deploy time — verify with `curl -s https://ryanbehan.pages.dev/ | grep beacon.min.js`). Keep footer copy honest about it: "cookieless Cloudflare analytics only, no third-party trackers".
 
