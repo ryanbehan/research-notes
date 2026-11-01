@@ -41,4 +41,6 @@ Posts are generated in the sibling `decisions-agent` repo (`../decisions-agent` 
    ```
    (`script -q` fakes a TTY — non-interactive wrangler demands a `CLOUDFLARE_API_TOKEN` otherwise.) Verify: `curl -sI https://ryanbehan.pages.dev/` → 200. Note Pages serves clean URLs: `*.html` links 308-redirect to the extension-less path, which is normal.
 
+Web Analytics is enabled on the project (cookieless beacon, auto-injected at deploy time — verify with `curl -s https://ryanbehan.pages.dev/ | grep beacon.min.js`). Keep footer copy honest about it: "cookieless Cloudflare analytics only, no third-party trackers".
+
 Template edits belong in `decisions-agent/docs/*.template.html` + `*-data.json`, never by editing the built HTML directly — changes would be lost on the next `bun run report`.
