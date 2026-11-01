@@ -1,11 +1,11 @@
 ---
 name: blog-publishing
-description: Add or update posts on the ryanbehan.github.io research blog. Use when copying reports from the decisions-agent repo into posts/, adding a POSTS index entry, keeping the shared theme working, or publishing new standalone article pages.
+description: Add or update posts on the ryanbehan.pages.dev research blog. Use when copying reports from the decisions-agent repo into posts/, adding a POSTS index entry, keeping the shared theme working, or publishing new standalone article pages.
 ---
 
 # Blog publishing
 
-The site is plain static HTML on GitHub Pages (`main` branch, repo root, `.nojekyll`). There is no build step on the blog side. Live at `https://ryanbehan.github.io/`.
+The site is plain static HTML on Cloudflare Pages (primary) — GitHub hosts source only. There is no build step on the blog side. Live at `https://ryanbehan.pages.dev/` (GitHub repo `ryanbehan/research-notes` is source only).
 
 ## Layout
 
@@ -31,9 +31,8 @@ Posts are generated in the sibling `decisions-agent` repo (`../decisions-agent` 
 1. `bun run report` builds `docs/report.html` and `docs/qa-report.html` (media embedded).
 2. Copy each into `posts/<date>-<slug>.html` in this repo.
 3. Add/update the entry in `index.html`'s `POSTS` array.
-4. `git add posts index.html && git commit && git push` — GitHub Pages redeploys automatically.
-5. Verify the Pages build: `gh api repos/ryanbehan/ryanbehan.github.io/pages/builds/latest --jq '.status'`, then curl the post URL for `rb-theme`.
-6. Deploy to Cloudflare Pages (primary, has analytics) — deploy a staged dir so `.git`/`.devin` never ship:
+4. `git add posts index.html && git commit && git push` — pushes to GitHub.
+5. 6. Deploy to Cloudflare Pages (primary, has analytics) — deploy a staged dir so `.git`/`.devin` never ship:
    ```bash
    rm -rf /tmp/rb-site && mkdir -p /tmp/rb-site
    cp index.html .nojekyll /tmp/rb-site/ && cp -R posts /tmp/rb-site/

@@ -1,10 +1,9 @@
-# ryanbehan.github.io
+# research-notes
 
 Research notes — experiments, benchmarks, and demos on AI infrastructure and
 agent tooling.
 
-Live at https://ryanbehan.pages.dev/ (Cloudflare Pages, primary) and
-https://ryanbehan.github.io/ (GitHub Pages, mirrors `main`).
+Live at https://ryanbehan.pages.dev/ (Cloudflare Pages). This repo is source only.
 
 Workflow for adding posts: see `.devin/skills/blog-publishing/SKILL.md`.
 
