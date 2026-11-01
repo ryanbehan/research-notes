@@ -1,7 +1,12 @@
 # ryanbehan.github.io
 
 Research notes — experiments, benchmarks, and demos on AI infrastructure and
-agent tooling. Served by GitHub Pages at https://ryanbehan.github.io/.
+agent tooling.
+
+Live at https://ryanbehan.pages.dev/ (Cloudflare Pages, primary) and
+https://ryanbehan.github.io/ (GitHub Pages, mirrors `main`).
+
+Workflow for adding posts: see `.devin/skills/blog-publishing/SKILL.md`.
 
 ## Structure
 

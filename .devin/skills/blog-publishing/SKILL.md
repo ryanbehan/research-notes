@@ -26,12 +26,19 @@ The site is plain static HTML on GitHub Pages (`main` branch, repo root, `.nojek
 
 ## Source of truth
 
-Posts are generated in `/Users/ryan/build/decisions-agent`:
+Posts are generated in the sibling `decisions-agent` repo (`../decisions-agent` from this repo's directory):
 
 1. `bun run report` builds `docs/report.html` and `docs/qa-report.html` (media embedded).
 2. Copy each into `posts/<date>-<slug>.html` in this repo.
 3. Add/update the entry in `index.html`'s `POSTS` array.
-4. `git add posts index.html && git commit && git push` — Pages redeploys automatically.
+4. `git add posts index.html && git commit && git push` — GitHub Pages redeploys automatically.
 5. Verify the Pages build: `gh api repos/ryanbehan/ryanbehan.github.io/pages/builds/latest --jq '.status'`, then curl the post URL for `rb-theme`.
+6. Deploy to Cloudflare Pages (primary, has analytics) — deploy a staged dir so `.git`/`.devin` never ship:
+   ```bash
+   rm -rf /tmp/rb-site && mkdir -p /tmp/rb-site
+   cp index.html .nojekyll /tmp/rb-site/ && cp -R posts /tmp/rb-site/
+   script -q /dev/null npx wrangler pages deploy /tmp/rb-site --project-name=ryanbehan --branch=main --commit-dirty=true
+   ```
+   (`script -q` fakes a TTY — non-interactive wrangler demands a `CLOUDFLARE_API_TOKEN` otherwise.) Verify: `curl -sI https://ryanbehan.pages.dev/` → 200. Note Pages serves clean URLs: `*.html` links 308-redirect to the extension-less path, which is normal.
 
 Template edits belong in `decisions-agent/docs/*.template.html` + `*-data.json`, never by editing the built HTML directly — changes would be lost on the next `bun run report`.
